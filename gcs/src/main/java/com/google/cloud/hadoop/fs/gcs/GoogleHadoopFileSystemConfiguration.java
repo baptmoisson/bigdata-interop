@@ -263,6 +263,11 @@ public class GoogleHadoopFileSystemConfiguration {
                   "${" + MR_JOB_HISTORY_INTERMEDIATE_DONE_DIR_KEY + "}",
                   "${" + MR_JOB_HISTORY_DONE_DIR_KEY + "}"));
 
+  /** Configuration key for enabling lazy initialization of GCS FS. */
+  public static final GoogleHadoopFileSystemConfigurationProperty<Boolean>
+      GCS_LAZY_INITIALIZATION_ENABLE =
+          new GoogleHadoopFileSystemConfigurationProperty<>("fs.gs.lazy.init.enable", true);
+
   /**
    * Configuration key for enabling automatic repair of implicit directories whenever detected
    * inside listStatus and globStatus calls, or other methods which may indirectly call listStatus
