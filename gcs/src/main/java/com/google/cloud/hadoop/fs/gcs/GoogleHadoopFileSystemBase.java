@@ -31,6 +31,7 @@ import static com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystemConfiguration
 import static com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystemConfiguration.GCS_WORKING_DIRECTORY;
 import static com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystemConfiguration.PATH_CODEC;
 import static com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystemConfiguration.PERMISSIONS_TO_REPORT;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.flogger.LazyArgs.lazy;
 
@@ -491,18 +492,22 @@ public abstract class GoogleHadoopFileSystemBase extends GoogleHadoopFileSystemB
   }
 
   /**
-   * Constructs an instance of GoogleHadoopFileSystemBase; the internal GoogleCloudStorageFileSystem
-   * will be set up with config settings when initialize() is called.
+   * Constructs an instance of GoogleHadoopFileSystemBase; the internal {@link
+   * GoogleCloudStorageFileSystem} will be set up with config settings when initialize() is called.
    */
   public GoogleHadoopFileSystemBase() {}
 
   /**
-   * Constructs an instance of GoogleHadoopFileSystemBase using the provided
+   * Constructs an instance of {@link GoogleHadoopFileSystemBase} using the provided
    * GoogleCloudStorageFileSystem; initialize() will not re-initialize it.
    */
   @VisibleForTesting
-  public GoogleHadoopFileSystemBase(GoogleCloudStorageFileSystem gcsFs) {
-    Preconditions.checkArgument(gcsFs != null, "gcsFsSupplier must not be null");
+  GoogleHadoopFileSystemBase(GoogleCloudStorageFileSystem gcsFs) {
+    checkNotNull(gcsFs, "gcsFs must not be null");
+    setGcsFs(gcsFs);
+  }
+
+  private void setGcsFs(GoogleCloudStorageFileSystem gcsFs) {
     this.gcsFsSupplier = Suppliers.ofInstance(gcsFs);
     this.gcsFsInitialized = true;
     this.pathCodec = gcsFs.getPathCodec();
@@ -612,8 +617,7 @@ public abstract class GoogleHadoopFileSystemBase extends GoogleHadoopFileSystemB
    */
   @Override
   public void initialize(URI path, Configuration config) throws IOException {
-    // initSuperclass == true.
-    initialize(path, config, true);
+    initialize(path, config, /* initSuperclass= */ true);
   }
 
   /**
@@ -1578,9 +1582,7 @@ public abstract class GoogleHadoopFileSystemBase extends GoogleHadoopFileSystemB
                 });
         pathCodec = getPathCodec(config);
       } else {
-        gcsFsSupplier = Suppliers.ofInstance(createGcsFs(config));
-        gcsFsInitialized = true;
-        pathCodec = gcsFsSupplier.get().getPathCodec();
+        setGcsFs(createGcsFs(config));
         configureBuckets(getGcsFs(), systemBucket, createSystemBucket);
         configureWorkingDirectory(config);
       }
